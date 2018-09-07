@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/jacobsa/go-serial/serial"
@@ -36,13 +38,13 @@ type USBSerial struct {
 	Name           string
 	Port           io.ReadWriteCloser
 	BlockUntilData bool
-	ReadTimeout    uint8 //in seconds.
+	ReadTimeout    time.Duration //in seconds.
 }
 
 // New creates a USBSerial object.
 // Always put `defer USBSerial.close()` immediately after calling this function to close the port on exit.
 // Leaving serial ports open will hamper subsequent connections.
-func New(portname string, blockUntilData bool, readtimeoutseconds uint8) (*USBSerial, error) {
+func New(portname string, blockUntilData bool, readtimeoutseconds int) (*USBSerial, error) {
 	var minreadsize uint
 	if blockUntilData == true {
 		minreadsize = 1
@@ -61,11 +63,15 @@ func New(portname string, blockUntilData bool, readtimeoutseconds uint8) (*USBSe
 	if err != nil {
 		return nil, err
 	}
+	to := parseDuration(readtimeoutseconds)
+	if to == math.MaxInt64 {
+		to = 5 * time.Second
+	}
 	us := &USBSerial{
 		Name:           portname,
 		Port:           port,
 		BlockUntilData: blockUntilData,
-		ReadTimeout:    readtimeoutseconds,
+		ReadTimeout:    to,
 	}
 	return us, nil
 }
@@ -82,8 +88,8 @@ func (us *USBSerial) Close() {
 // This function is not thread-safe and should not be used concurrently.
 // The `waitperiod` parameter defines the wait time before reading the response buffer.
 //   - For normal commands, use 1.
-//   - For commands with larger response sizes, use 2.
-func (us *USBSerial) SendData(data []byte, waitperiod string) error {
+//   - For commands with larger response sizes, use num >1.
+func (us *USBSerial) SendData(data []byte, waitperiod int) error {
 	var err error
 	var n int
 	//Write the command
@@ -99,12 +105,9 @@ func (us *USBSerial) SendData(data []byte, waitperiod string) error {
 	}
 
 	//Read response
-	var waittime time.Duration
-	t, err := time.ParseDuration(waitperiod)
-	if err != nil {
+	waittime := parseDuration(waitperiod)
+	if waittime == math.MaxInt64 {
 		waittime = 1 * time.Second
-	} else {
-		waittime = t * time.Second
 	}
 	recBuf := make([]byte, constReadBufferSize) // The serial interface needs a buffer of fixed size and hence this intermediate buffer is used.
 	ch := make(chan int)
@@ -117,15 +120,31 @@ func (us *USBSerial) SendData(data []byte, waitperiod string) error {
 			ch <- 1
 		}()
 
-		<-ch //The function is blocked here until the go routine above is completed.
-		if err != nil {
-			return err
+		// Add Timeout
+		select {
+		case <-ch:
+			// Executed when the routine successfully completes
+			if err != nil {
+				return err
+			}
+		case <-time.After(us.ReadTimeout):
+			return errors.New("Serial Port Timeout")
 		}
 	}
 	return nil
 }
 
-// ScanPorts scans all serial ports and returns a list of available ports.
+// ScanPorts scans returns a list of available ports.
 func (us *USBSerial) ScanPorts() []string {
 	return nil
+}
+
+// parseDuration is a custom wrapper over time.ParseDuration that accepts integer arguments.
+// If the time is invalid, it returns `math.MaxInt64`.
+func parseDuration(duration int) time.Duration {
+	t, err := time.ParseDuration(strconv.Itoa(duration))
+	if err != nil {
+		return math.MaxInt64
+	}
+	return t
 }

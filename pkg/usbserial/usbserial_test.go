@@ -23,12 +23,7 @@ func TestSendData(t *testing.T) {
 	}
 	defer usb.Close()
 
-	// err = usb.SendData([]byte("AT"))
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	err = usb.SendData([]byte("AT&V"), "2")
+	err = usb.SendData([]byte("AT&V"), 1)
 	if err != nil {
 		t.Fatal(err)
 	}
