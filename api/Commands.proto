@@ -23,6 +23,7 @@ message Command{
     string arguments  = 4;
 }
 
+// Response is the response bytes received on the serial port.
 message Response{
     bytes response = 1;
 }
