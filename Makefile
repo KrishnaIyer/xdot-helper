@@ -13,6 +13,8 @@
 
 BUILD_DIR = build
 PKGS := $(shell go list ./... | grep -v /vendor)
+PROTO_DIR = api
+PROTO_FILES := $(shell find $(PROTO_DIR) -name '*.proto')
 #GOBUILD = CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o "$@"
 GOBUILD = go build -o "$@"
 SRC_FILES = *.go
@@ -26,6 +28,9 @@ build: clean $(SRC:%=$(BUILD_DIR)/%)
 
 $(BUILD_DIR)/%:
 	$(GOBUILD) pkg/$(@:$(BUILD_DIR)/%=%)/$(SRC_FILES)
+
+proto:
+	$(foreach file,$(PROTO_FILES), protoc -I .:$$GOPATH/src --go_out=plugins=grpc:$$GOPATH/src $(file);)
 
 deps:
 	dep ensure -v --update
