@@ -31,6 +31,7 @@ const (
 	constResSplCharacterCR = "\r"
 	constERRORResponse     = "ERROR"
 	constOKResponse        = "OK"
+	constDefaultWaitPeriod = 1 // 1 sec
 )
 
 // Handler handles AT commands
@@ -59,13 +60,13 @@ func New(device string) *Handler {
 //  - The response data.
 //  - Error
 func (c *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, error) {
-	var data string
 	if cmd.Arguments != "" {
-		data = cmd.Request + constCmdSeparator + cmd.Arguments
-	} else {
-		data = cmd.Request
+		cmd.Request = cmd.Request + constCmdSeparator + cmd.Arguments
 	}
-	rawRes, err := c.us.SendData([]byte(data), int(cmd.WaitPeriod))
+	if cmd.WaitPeriod == 0 {
+		cmd.WaitPeriod = constDefaultWaitPeriod
+	}
+	rawRes, err := c.us.SendData([]byte(cmd.Request), int(cmd.WaitPeriod))
 	if err != nil {
 		return pbapi.Result_NONE, nil, errors.New("Failed to execute command: " + err.Error())
 	}
