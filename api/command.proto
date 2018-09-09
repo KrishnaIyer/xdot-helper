@@ -38,10 +38,12 @@ message Result{
     // request is the command that was executed.
     string request = 1;
     // response_code is either `OK` or `ERROR`, which is received from the device upon executing the command.
-    string response_code = 2;
+    ResCode response_code = 2;
     // response is the string recevied from the device.
     string response = 3; 
-    // error is the error message (if any) during the execution of the command.
-    // This is different from an `ERROR` response_code, where the command was actually executed and the device returned an error.
-    string error = 4; 
+    enum ResCode{
+        NONE = 0;
+        OK = 1;
+        ERROR = 2;
+    }
 }

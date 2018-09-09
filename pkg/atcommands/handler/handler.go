@@ -29,8 +29,8 @@ const (
 	constResDelimiter      = "\r\n"
 	constResSplCharacterLF = "\n"
 	constResSplCharacterCR = "\r"
-	constErrorResponse     = "ERROR"
-	constCorrectResponse   = "OK"
+	constERRORResponse     = "ERROR"
+	constOKResponse        = "OK"
 )
 
 // Handler handles AT commands
@@ -58,7 +58,7 @@ func New(device string) *Handler {
 //  - The response code; `OK`, `ERROR`
 //  - The response data.
 //  - Error
-func (c *Handler) Execute(cmd pbapi.Command) (string, []byte, error) {
+func (c *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, error) {
 	var data string
 	if cmd.Arguments != "" {
 		data = cmd.Request + constCmdSeparator + cmd.Arguments
@@ -67,24 +67,35 @@ func (c *Handler) Execute(cmd pbapi.Command) (string, []byte, error) {
 	}
 	rawRes, err := c.us.SendData([]byte(data), int(cmd.WaitPeriod))
 	if err != nil {
-		return "", nil, errors.New("Failed to execute command: " + err.Error())
+		return pbapi.Result_NONE, nil, errors.New("Failed to execute command: " + err.Error())
 	}
 	r, err := cleanResponse(rawRes)
 	if err != nil {
-		return "", nil, errors.New("Failed to decode response: " + err.Error())
+		return pbapi.Result_NONE, nil, errors.New("Failed to decode response: " + err.Error())
 	}
 	lenR := len(r)
 	if lenR == 0 {
-		return "", nil, errors.New("Failed to decode response: " + err.Error())
+		return pbapi.Result_NONE, nil, errors.New("Failed to decode response: " + err.Error())
 	}
 	if r[0] != cmd.Request || (len(r)-2) != int(cmd.LinesInResponse) {
-		return "", nil, errors.New("Invalid Response received from Device")
+		return pbapi.Result_NONE, nil, errors.New("Invalid Response received from Device")
 	}
 	var res bytes.Buffer
 	for i := 1; i < (len(r) - 1); i++ {
 		res.Write([]byte(r[i]))
 	}
-	return r[(lenR - 1)], res.Bytes(), err
+	var rescode pbapi.Result_ResCode
+	switch r[(lenR - 1)] {
+	case constOKResponse:
+		rescode = pbapi.Result_OK
+		break
+	case constERRORResponse:
+		rescode = pbapi.Result_ERROR
+		break
+	default:
+		return pbapi.Result_NONE, nil, errors.New("Invalid Response received from Device")
+	}
+	return rescode, res.Bytes(), err
 }
 
 // cleanResponse removes the special charaters  response byte stream.
