@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmdhandler
+package handler
 
 import (
 	"bytes"
@@ -33,21 +33,21 @@ const (
 	constCorrectResponse   = "OK"
 )
 
-// CMDHandler handles AT commands
-type CMDHandler struct {
+// Handler handles AT commands
+type Handler struct {
 	logger *zap.Logger
 	us     *usbserial.USBSerial
 }
 
 // New creates a new AT commands Handler.
-func New(device string) *CMDHandler {
+func New(device string) *Handler {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	us, err := usbserial.New(device, true, 5)
 	if err != nil {
 		logger.Fatal("Failed to connect to Serial Device")
 	}
-	return &CMDHandler{
+	return &Handler{
 		us:     us,
 		logger: logger,
 	}
@@ -58,7 +58,7 @@ func New(device string) *CMDHandler {
 //  - The response code; `OK`, `ERROR`
 //  - The response data.
 //  - Error
-func (c *CMDHandler) Execute(cmd pbapi.Command) (string, []byte, error) {
+func (c *Handler) Execute(cmd pbapi.Command) (string, []byte, error) {
 	var data string
 	if cmd.Arguments != "" {
 		data = cmd.Request + constCmdSeparator + cmd.Arguments
