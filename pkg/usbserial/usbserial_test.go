@@ -16,15 +16,15 @@ package usbserial
 import "testing"
 
 func TestSendData(t *testing.T) {
-
-	usb, err := New("/dev/tty.usbmodem144111", true, 5)
+	usb, err := New("/dev/tty.usbmodem146111", true, 5)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer usb.Close()
 
-	err = usb.SendData([]byte("AT&V"), 1)
+	res, err := usb.SendData([]byte("AT+DI"), 1)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(res)
 }

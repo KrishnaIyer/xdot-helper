@@ -16,7 +16,6 @@ package usbserial
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"math"
 	"strconv"
@@ -89,19 +88,20 @@ func (us *USBSerial) Close() {
 // The `waitperiod` parameter defines the wait time before reading the response buffer.
 //   - For normal commands, use 1.
 //   - For commands with larger response sizes, use num >1.
-func (us *USBSerial) SendData(data []byte, waitperiod int) error {
+func (us *USBSerial) SendData(data []byte, waitperiod int) ([]byte, error) {
 	var err error
 	var n int
+
 	//Write the command
 	var sendBuffer bytes.Buffer
 	sendBuffer.Write([]byte(data))
 	sendBuffer.WriteByte(constLineFeedASCII)
 	n, err = us.Port.Write(sendBuffer.Bytes())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if n == 0 {
-		return errors.New("No bytes written on serial port")
+		return nil, errors.New("No bytes written on serial port")
 	}
 
 	//Read response
@@ -111,27 +111,26 @@ func (us *USBSerial) SendData(data []byte, waitperiod int) error {
 	}
 	recBuf := make([]byte, constReadBufferSize) // The serial interface needs a buffer of fixed size and hence this intermediate buffer is used.
 	ch := make(chan int)
-	for i := 0; i < 1; i++ {
-		go func() {
-			time.Sleep(waittime) // allow some delay to read let the buffer get filled with the entire response.
-			n, err = us.Port.Read(recBuf)
-			fmt.Println(recBuf)
-			fmt.Println(string(recBuf))
-			ch <- 1
-		}()
 
-		// Add Timeout
-		select {
-		case <-ch:
-			// Executed when the routine successfully completes
-			if err != nil {
-				return err
-			}
-		case <-time.After(us.ReadTimeout):
-			return errors.New("Serial Port Timeout")
+	// Routine to get data
+	go func() {
+		time.Sleep(waittime) // allow some delay to read let the buffer get filled with the entire response.
+		n, err = us.Port.Read(recBuf)
+		ch <- 1
+	}()
+
+	// Add Timeout
+	select {
+	case <-ch:
+		// Executed when the routine successfully completes
+		if err != nil {
+			return nil, err
 		}
+	case <-time.After(us.ReadTimeout):
+		return nil, errors.New("Serial Port Timeout")
 	}
-	return nil
+
+	return recBuf, nil
 }
 
 // ScanPorts scans returns a list of available ports.
