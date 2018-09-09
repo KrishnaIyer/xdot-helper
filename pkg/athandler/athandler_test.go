@@ -38,10 +38,11 @@ func TestExecute(t *testing.T) {
 		WaitPeriod:      1,
 		LinesInResponse: 0,
 	}
-	res, err := ath.Execute(cmd)
+	rescode, res, err := ath.Execute(cmd)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(rescode)
 	t.Log(string(res))
 
 	cmd = pbapi.Command{
@@ -49,9 +50,22 @@ func TestExecute(t *testing.T) {
 		WaitPeriod:      1,
 		LinesInResponse: 1,
 	}
-	res, err = ath.Execute(cmd)
+	rescode, res, err = ath.Execute(cmd)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Log(rescode)
+	t.Log(string(res))
+
+	cmd = pbapi.Command{
+		Request:         "ATTT",
+		WaitPeriod:      1,
+		LinesInResponse: 1,
+	}
+	rescode, res, err = ath.Execute(cmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(rescode)
 	t.Log(string(res))
 }

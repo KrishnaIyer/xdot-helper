@@ -29,6 +29,8 @@ const (
 	constResDelimiter      = "\r\n"
 	constResSplCharacterLF = "\n"
 	constResSplCharacterCR = "\r"
+	constErrorResponse     = "ERROR"
+	constCorrectResponse   = "OK"
 )
 
 // ATHandler handles AT commands
@@ -52,7 +54,11 @@ func New(device string) *ATHandler {
 }
 
 // Execute sends the AT Command to the usb device and extracts the response.
-func (c *ATHandler) Execute(cmd pbapi.Command) ([]byte, error) {
+// The return values are:
+//  - The response code; `OK`, `ERROR`
+//  - The response data.
+//  - Error
+func (c *ATHandler) Execute(cmd pbapi.Command) (string, []byte, error) {
 	var data string
 	if cmd.Arguments != "" {
 		data = cmd.Request + constCmdSeparator + cmd.Arguments
@@ -61,24 +67,24 @@ func (c *ATHandler) Execute(cmd pbapi.Command) ([]byte, error) {
 	}
 	rawRes, err := c.us.SendData([]byte(data), int(cmd.WaitPeriod))
 	if err != nil {
-		return nil, errors.New("Failed to execute command: " + err.Error())
+		return "", nil, errors.New("Failed to execute command: " + err.Error())
 	}
 	r, err := cleanResponse(rawRes)
 	if err != nil {
-		return nil, errors.New("Failed to decode response: " + err.Error())
+		return "", nil, errors.New("Failed to decode response: " + err.Error())
 	}
 	lenR := len(r)
 	if lenR == 0 {
-		return nil, errors.New("Failed to decode response: " + err.Error())
+		return "", nil, errors.New("Failed to decode response: " + err.Error())
 	}
-	if r[0] != cmd.Request || r[(len(r)-1)] != "OK" || (len(r)-2) != int(cmd.LinesInResponse) {
-		return nil, errors.New("Invalid Response received from Device")
+	if r[0] != cmd.Request || (len(r)-2) != int(cmd.LinesInResponse) {
+		return "", nil, errors.New("Invalid Response received from Device")
 	}
 	var res bytes.Buffer
 	for i := 1; i < (len(r) - 1); i++ {
 		res.Write([]byte(r[i]))
 	}
-	return res.Bytes(), err
+	return r[(lenR - 1)], res.Bytes(), err
 }
 
 // cleanResponse removes the special charaters  response byte stream.
