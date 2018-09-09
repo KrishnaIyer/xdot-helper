@@ -17,13 +17,13 @@ package api;
 
 option go_package = "github.com/KrishnaIyer/xdot-helper/pkg/pbapi";
 
-// Command is equivalent to a single AT command as defined in the XDOT spec.
+// Command is equivalent to a single AT command as defined in the ATcommand spec.
 message Command{
     // name is the user defined name of the AT command.
     string name  = 1;
     // description is a simple function description.
     string description = 2;
-    // request is the actual request sent to the XDOT.
+    // request is the actual request sent to the device.
     string request = 3 ; //[(gogoproto.nullable) = false];
     // arguments are optional arguments used for some commands.
     string arguments  = 4;
@@ -33,7 +33,15 @@ message Command{
     int32 lines_in_response = 6;
 }
 
-// Response is the response bytes received on the serial port.
-message Response{
-    bytes response = 1;
+// Result is the structure containing information on the command execution result.
+message Result{
+    // request is the command that was executed.
+    string request = 1;
+    // response_code is either `OK` or `ERROR`, which is received from the device upon executing the command.
+    string response_code = 2;
+    // response is the string recevied from the device.
+    string response = 3; 
+    // error is the error message (if any) during the execution of the command.
+    // This is different from an `ERROR` response_code, where the command was actually executed and the device returned an error.
+    string error = 4; 
 }
