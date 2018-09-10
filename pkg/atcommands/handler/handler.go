@@ -41,6 +41,7 @@ type Handler struct {
 }
 
 // New creates a new AT commands Handler.
+// Make sure to call `Handler.Close()`` upon exit.
 func New(device string) *Handler {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -59,11 +60,11 @@ func New(device string) *Handler {
 //  - The response code; `OK`, `ERROR`
 //  - The response data.
 //  - Error
-func (c *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, error) {
+func (h *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, error) {
 	if cmd.WaitPeriod == 0 {
 		cmd.WaitPeriod = constDefaultWaitPeriod
 	}
-	rawRes, err := c.us.SendData([]byte(cmd.Request), int(cmd.WaitPeriod))
+	rawRes, err := h.us.SendData([]byte(cmd.Request), int(cmd.WaitPeriod))
 	if err != nil {
 		return pbapi.Result_NONE, nil, errors.New("Failed to execute command: " + err.Error())
 	}
@@ -94,6 +95,12 @@ func (c *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, erro
 		return pbapi.Result_NONE, nil, errors.New("Invalid Response received from Device")
 	}
 	return rescode, res.Bytes(), err
+}
+
+// Close closes the underlying serial connection.
+// This function needs to be called upon exit.
+func (h *Handler) Close() {
+	h.us.Close()
 }
 
 // cleanResponse removes the special charaters  response byte stream.

@@ -32,7 +32,8 @@ type Sequence struct {
 
 const constCMDListSeparator = 0x3B // Ascii for ;
 
-// New returns an empty sequence and creates the handler
+// New returns an empty sequence and creates the handler.
+// Make sure to call `Sequence.CloseHandler()` upon exit.
 func New(device string, delay uint16, exitOnError bool) *Sequence {
 	return &Sequence{
 		Device:      device,
@@ -81,4 +82,9 @@ func (seq *Sequence) Execute() ([]pbapi.Result, error) {
 		}
 	}
 	return seqres, nil
+}
+
+// CloseHandler is used to close the handler which in-turn closes the underlying serial port.
+func (seq *Sequence) CloseHandler() {
+	seq.Handler.Close()
 }

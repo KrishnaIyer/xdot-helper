@@ -33,6 +33,7 @@ func TestCleanResponse(t *testing.T) {
 
 func TestExecute(t *testing.T) {
 	ath := New("/dev/tty.usbmodem146111")
+	defer ath.Close()
 	cmd := pbapi.Command{
 		Request:         "AT",
 		WaitPeriod:      1,

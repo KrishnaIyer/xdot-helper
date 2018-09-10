@@ -21,7 +21,7 @@ import (
 
 func TestSequenceOK(t *testing.T) {
 	s := New("/dev/tty.usbmodem146111", 1, false)
-
+	defer s.CloseHandler()
 	// Correct sequence
 	cmd := pbapi.Command{
 		Request:         "AT",
@@ -52,7 +52,7 @@ func TestSequenceOK(t *testing.T) {
 
 func TestSequenceErrorExit(t *testing.T) {
 	s := New("/dev/tty.usbmodem146111", 1, true)
-
+	defer s.CloseHandler()
 	// Correct sequence
 	cmd := pbapi.Command{
 		Request:         "AT",
@@ -85,7 +85,7 @@ func TestSequenceErrorExit(t *testing.T) {
 
 func TestSequenceErrorContinue(t *testing.T) {
 	s := New("/dev/tty.usbmodem146111", 1, false)
-
+	defer s.CloseHandler()
 	// Correct sequence
 	cmd := pbapi.Command{
 		Request:         "AT",
