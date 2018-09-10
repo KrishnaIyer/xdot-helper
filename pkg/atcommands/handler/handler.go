@@ -60,9 +60,6 @@ func New(device string) *Handler {
 //  - The response data.
 //  - Error
 func (c *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, error) {
-	if cmd.Arguments != "" {
-		cmd.Request = cmd.Request + constCmdSeparator + cmd.Arguments
-	}
 	if cmd.WaitPeriod == 0 {
 		cmd.WaitPeriod = constDefaultWaitPeriod
 	}
