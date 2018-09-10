@@ -25,7 +25,7 @@ message Command{
     string description = 2;
     // request is the actual request sent to the device.
     string request = 3 ; //[(gogoproto.nullable) = false];
-    // wait_period is the amount of time to wait for a response.
+    // wait_period is the amount of time to wait for a response. If not specified, a default waittime of 1 sec is used.
     int32 wait_period = 4 ; //[(gogoproto.nullable) = false];
     // lines_in_response is the expected lines in the response for each  command.
     int32 lines_in_response = 5;
