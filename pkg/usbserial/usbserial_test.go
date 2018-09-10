@@ -16,7 +16,7 @@ package usbserial
 import "testing"
 
 func TestSendData(t *testing.T) {
-	usb, err := New("/dev/tty.usbmodem146111", true, 5)
+	usb, err := New("/dev/tty.usbmodem1451111", true, 5)
 	if err != nil {
 		t.Fatal(err)
 	}

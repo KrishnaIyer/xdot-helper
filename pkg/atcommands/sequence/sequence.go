@@ -25,7 +25,6 @@ import (
 type Sequence struct {
 	CMDs        []pbapi.Command
 	Delay       uint16
-	Device      string
 	ExitOnError bool
 	Handler     *handler.Handler
 }
@@ -36,10 +35,9 @@ const constCMDListSeparator = 0x3B // Ascii for ;
 // Make sure to call `Sequence.CloseHandler()` upon exit.
 func New(device string, delay uint16, exitOnError bool) *Sequence {
 	return &Sequence{
-		Device:      device,
 		Delay:       delay,
 		ExitOnError: exitOnError,
-		Handler:     handler.New("/dev/tty.usbmodem146111"),
+		Handler:     handler.New(device),
 	}
 }
 
@@ -49,6 +47,19 @@ func (seq *Sequence) AddCommand(cmd pbapi.Command) error {
 		return errors.New("Invalid Command")
 	}
 	seq.CMDs = append(seq.CMDs, cmd)
+	return nil
+}
+
+// MakeSequenceFromReqList creates new commands from the provided requests and adds them to the sequence.
+func (seq *Sequence) MakeSequenceFromReqList(reqs []string) error {
+	for _, req := range reqs {
+		if req != "" {
+			cmd := pbapi.Command{
+				Request: req,
+			}
+			seq.CMDs = append(seq.CMDs, cmd)
+		}
+	}
 	return nil
 }
 

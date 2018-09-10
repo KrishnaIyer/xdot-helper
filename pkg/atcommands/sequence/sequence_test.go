@@ -20,7 +20,7 @@ import (
 )
 
 func TestSequenceOK(t *testing.T) {
-	s := New("/dev/tty.usbmodem146111", 1, false)
+	s := New("/dev/tty.usbmodem1451111", 1, false)
 	defer s.CloseHandler()
 	// Correct sequence
 	cmd := pbapi.Command{
