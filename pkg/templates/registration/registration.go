@@ -35,8 +35,8 @@ const (
 	XDOTLoraATSetTxDataRate        = "AT+TXDR=7"
 )
 
-// NewRegistationSequence returns a new sequence.Sequence that contains the steps for registering a device to a Network.
-func NewRegistationSequence(device, nwkKey, appEUI string) (*sequence.Sequence, error) {
+// New returns a new sequence.Sequence that contains the steps for registering a device to a Network.
+func New(device, nwkKey, appEUI string) (*sequence.Sequence, error) {
 	s := sequence.New(device, 1, true)
 	//Create the sequence.
 	reqs := []string{XDOTLoraATFactoryReset, XDOTLoraATEnablePrivateNetwork, XDOTLoraATWriteAppEUI + appEUI, XDOTLoraATWriteNwkKey + nwkKey, XDOTLoraATNoJoinRetries, XDOTLoraATSaveConfig}
