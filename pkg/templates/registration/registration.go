@@ -15,6 +15,7 @@ package registration
 
 import (
 	sequence "github.com/KrishnaIyer/xdot-helper/pkg/atcommands/sequence"
+	"github.com/KrishnaIyer/xdot-helper/pkg/pbapi"
 )
 
 // Defines the commands that are to be executed during the Join Sequence.
@@ -38,8 +39,9 @@ const (
 // New returns a new sequence.Sequence that contains the steps for registering a device to a Network.
 func New(device, nwkKey, appEUI string) (*sequence.Sequence, error) {
 	s := sequence.New(device, 1, true)
-	//Create the sequence.
-	reqs := []string{XDOTLoraATFactoryReset, XDOTLoraATEnablePrivateNetwork, XDOTLoraATWriteAppEUI + appEUI, XDOTLoraATWriteNwkKey + nwkKey, XDOTLoraATNoJoinRetries, XDOTLoraATSaveConfig}
-	s.MakeSequenceFromReqList(reqs)
+	s.AddCommand(pbapi.Command{Request: XDOTLoraATFactoryReset, WaitPeriod: 1, LinesInResponse: 0})
+	s.AddCommand(pbapi.Command{Request: XDOTLoraATWriteAppEUI + appEUI, WaitPeriod: 1, LinesInResponse: 1})
+	s.AddCommand(pbapi.Command{Request: XDOTLoraATWriteNwkKey + nwkKey, WaitPeriod: 1, LinesInResponse: 1})
+	s.AddCommand(pbapi.Command{Request: XDOTLoraATSaveConfig, WaitPeriod: 1, LinesInResponse: 0})
 	return s, nil
 }

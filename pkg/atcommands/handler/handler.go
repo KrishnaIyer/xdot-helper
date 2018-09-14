@@ -77,7 +77,7 @@ func (h *Handler) Execute(cmd pbapi.Command) (pbapi.Result_ResCode, []byte, erro
 		return pbapi.Result_NONE, nil, errors.New("Failed to decode response: " + err.Error())
 	}
 	if r[0] != cmd.Request || (len(r)-2) != int(cmd.LinesInResponse) {
-		return pbapi.Result_NONE, nil, errors.New("Invalid Response received from Device")
+		return pbapi.Result_NONE, nil, errors.New("Invalid Response received from Device for request: " + cmd.Request)
 	}
 	var res bytes.Buffer
 	for i := 1; i < (len(r) - 1); i++ {
