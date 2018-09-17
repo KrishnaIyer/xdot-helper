@@ -1,8 +1,14 @@
 # Contributing
 
-As this is an open-source project, pull requests from developers are highly appreciated. By participating in this project, you agree to abide by the Ubuntu [code of conduct].
+As this is an open-source project, pull requests from developers are highly appreciated. By participating in this project, you agree to be an adult and not need a code of conduct to behave yourself.
 
-[code of conduct]: https://www.ubuntu.com/community/code-of-conduct
+## Contributor Code of Conduct
+
+> This project adheres to No Code of Conduct.  We are all adults.  We accept anyone's contributions.  Nothing else matters.
+
+For more information please visit the [No Code of Conduct](https://github.com/KrishnaIyer/NCoC).
+
+## Software changes
 
 Make sure that you have `git` and `golang` setup on your machine.
 
